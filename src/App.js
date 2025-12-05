@@ -1,11 +1,20 @@
-import './App.css';
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Navigation from './components/layouts/Navigation.js';
+import Home from './pages/Home.js';
+import Login from './pages/Login';
+import Register from './pages/Register';
 
 function App() {
   return (
-    <div className="App">
-      <h1>Tier List Maker</h1>
-      <p>Connected to Spring Boot backend!</p>
-    </div>
+    <BrowserRouter>
+      <Navigation />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Routes>
+    </BrowserRouter>
   );
 }
 
