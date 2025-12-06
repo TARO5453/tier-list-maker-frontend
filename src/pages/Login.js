@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Container, Card, Form, Button, Alert, Row, Col} from 'react-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 
 function Login() {
   const navigate = useNavigate();
+  const {login} = useAuth();
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,8 +25,7 @@ function Login() {
 
       if (response.data.success) {
         // Save user info
-        localStorage.setItem('token', 'authenticated');
-        localStorage.setItem('username', username);
+        login(username);
         // Redirect to Templates page
         navigate('/templates');
       } else {
@@ -81,7 +83,7 @@ function Login() {
 
               <div className="text-center mt-3">
                 <p className="mb-0">
-                  register new account{' '}
+                  Don't have an account?{' '}
                   <Link to="/register" className="text-decoration-none">
                     Sign up
                   </Link>
