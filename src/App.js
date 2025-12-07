@@ -11,7 +11,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Templates from './pages/Templates.js';
 import NewTemplate from './pages/NewTemplate.js';
-
+import PublicTemplates from './pages/PublicTemplates.js';
 
 
 function App() {
@@ -35,6 +35,12 @@ function App() {
             <Route path="/new-template" element={
                 <ProtectedRoute>
                   <NewTemplate />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/public-templates" element={
+                <ProtectedRoute>
+                  <PublicTemplates />
                 </ProtectedRoute>
               }
             />
