@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef} from 'react';
 import { Container, Row, Col, Button, Alert, Card, Form, InputGroup, Modal, Dropdown, Spinner} from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
+import ReactDOMServer from 'react-dom/server';
 import { useDroppable } from "@dnd-kit/core";
 import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
 import { DndContext, DragOverlay } from '@dnd-kit/core';
@@ -9,6 +10,9 @@ import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@d
 import { CSS } from '@dnd-kit/utilities';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
+import html2canvas from 'html2canvas';
+import ExportTierlist from '../components/Tierlist/ExportTierlist';
+
 
 /* 
     Some parts are generated from Deepseek AI
@@ -21,7 +25,7 @@ function SortableItem({ id, item, isDragging }) {
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.5 : 1 // When users drag items, make it transparents.
+        opacity: isDragging ? 0.5 : 1, // When users drag items, make it transparents.
     };
 
     return (
@@ -41,18 +45,6 @@ function SortableItem({ id, item, isDragging }) {
           alt={item.name}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
-        <div style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: 'rgba(0,0,0,0.6)',
-          color: 'white',
-          padding: '2px 6px',
-          fontSize: 12
-        }}>
-          {item.name}
-        </div>
       </div>
     </div>
   );
@@ -134,6 +126,9 @@ function CreateTierlist() {
     });
     return map;
   }, [containers]);
+
+  // Add ref to capture tier list contents
+  const tierlistRef = useRef(null);
 
   // Find container id that contains the itemId
   const findContainerForItem = useCallback((itemId) => {
@@ -284,6 +279,73 @@ function CreateTierlist() {
     });
     };
 
+    // Export tierlist as png
+  const exportTierlist = async () => {
+    try {
+        setLoading(true);
+        
+        // Create a temporary div for export
+        const exportDiv = document.createElement('div');
+        exportDiv.style.position = 'absolute';
+        exportDiv.style.left = '-9999px';
+        exportDiv.style.width = '1200px'; 
+        exportDiv.style.padding = '20px';
+        exportDiv.style.backgroundColor = 'white';
+        
+        // Render the export content
+        const exportContent = document.createElement('div');
+        exportContent.innerHTML = `
+        <div style="width: 100%; background: white;">
+            ${ReactDOMServer.renderToStaticMarkup(
+            <ExportTierlist
+                tiersMeta={tiersMeta}
+                containers={containers}
+                template={template}
+            />
+            )}
+        </div>
+        `;
+        
+        exportDiv.appendChild(exportContent);
+        document.body.appendChild(exportDiv);
+        
+        // Use html2canvas on the export content
+        const canvas = await html2canvas(exportDiv, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        width: 1200,
+        height: exportDiv.scrollHeight,
+        windowWidth: 1200,
+        windowHeight: exportDiv.scrollHeight
+        });
+        
+        // Clean up
+        document.body.removeChild(exportDiv);
+        
+        // Convert to image and download
+        const image = canvas.toDataURL('image/png', 1.0);
+        const link = document.createElement('a');
+        const fileName = `${template?.name || 'tierlist'}_${new Date().getTime()}.png`;
+        link.download = fileName;
+        link.href = image;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        //alert('Exported successfully!');
+        
+    } catch (error) {
+        console.error('Error exporting tierlist:', error);
+        setError('Failed to export tierlist. Please try again.');
+    } finally {
+        setLoading(false);
+    }
+};
+
   // Add row
   const addTier = () => {
     // Rows must have name
@@ -332,87 +394,93 @@ function CreateTierlist() {
         </Col>
         <Col className="text-end">
           <Button variant="outline-secondary" className="me-2" onClick={() => navigate('/templates')}>Back</Button>
-          <Button variant="primary" onClick={() => alert('Will do next')}>Export</Button>
+          <Button variant="primary" onClick={() => exportTierlist()}>Export</Button>
         </Col>
       </Row>
 
       {error && <Alert variant="danger">{error}</Alert>}
+      {loading && <div className="text-center py-3"><Spinner animation="border" /></div>}
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        {/* Rows */}
-        <div className="mb-4">
-          {tiersMeta.map(t => (
-            <Card key={t.id} className="mb-3" style={{ borderLeft: `5px solid ${t.color}` }}>
-              <Card.Body>
-                <Row className="align-items-center">
-                  <Col xs={2} md={1}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Form.Control value={t.label} onChange={(e) => renameTier(t.id, e.target.value)}
-                        style={{ backgroundColor: t.color, color: '#000', fontWeight: 'bold', textAlign: 'center', width: 80, height: 100, border: '1px solid #484c50ff', borderRight: 'none', borderRadius: '0.25rem 0 0 0.25rem'}}
-                    />
-                    <Dropdown>
-                        <Dropdown.Toggle 
-                        variant="outline-secondary" 
-                        size="sm" 
-                        style={{ backgroundColor: t.color, height: 100, width: 20, borderLeft: 'none', borderRadius: '0 0.25rem 0.25rem 0', border: '1px solid #484c50ff'}}
-                        >
-            
-                        </Dropdown.Toggle>
-                        <Dropdown.Menu>
-                        <Dropdown.Item onClick={() => removeTier(t.id)}>Delete</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown>
-                    </div>
-                  </Col>
-                  {/* Show the items */}
-                  <Col xs={10} md={11}>
-                    <DroppableContainer id={t.id} style={{
-                      minHeight: 100, backgroundColor: `${t.color}15`, borderRadius: 4, padding: 10, display: 'flex', flexWrap: 'wrap', gap: 10
-                    }}>
-                      <SortableContext items={(containers[t.id] || []).map(i => i.id)} strategy={rectSortingStrategy}>
-                        {(containers[t.id] || []).map(it => (
-                          <SortableItem key={it.id} id={it.id} item={it} isDragging={activeId === it.id} />
-                        ))}
-                      </SortableContext>
-                    </DroppableContainer>
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
-          ))}
-        </div>
 
-        {/* Add row */}
-        <div className="text-center mb-4">
-          <Button variant="outline-secondary" onClick={() => setShowAddTierModal(true)}>+ Add Tier</Button>
-        </div>
+      {/* Wrap the tierlist content in a div with ref */}
+      <div ref={tierlistRef}>
 
-        {/* Unselected area */}
-        <Card className="mb-4">
-          <Card.Header><h5 className="mb-0">Unselected Items</h5></Card.Header>
-          <Card.Body>
-            <DroppableContainer id="unranked" style={{
-              minHeight: 150, backgroundColor: '#f8f9fa', borderRadius: 4, padding: 15, display: 'flex', flexWrap: 'wrap', gap: 15
-            }}>
-                {/* Show the items */}
-              <SortableContext items={(containers.unranked || []).map(i => i.id)} strategy={rectSortingStrategy}>
-                {(containers.unranked || []).map(it => (
-                  <SortableItem key={it.id} id={it.id} item={it} isDragging={activeId === it.id} />
-                ))}
-              </SortableContext>
-            </DroppableContainer>
-          </Card.Body>
-        </Card>
-
-        {/* Drag overlay with item image */}
-        <DragOverlay>
-          {activeItem ? (
-            <div style={{ width: 120, height: 120, borderRadius: 6, overflow: 'hidden', boxShadow: '0 6px 20px rgba(0,0,0,0.2)' }}>
-              <img src={activeItem.imageUrl} alt={activeItem.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+            {/* Rows */}
+            <div className="mb-4">
+            {tiersMeta.map(t => (
+                <Card key={t.id} className="mb-3" style={{ borderLeft: `5px solid ${t.color}` }}>
+                <Card.Body>
+                    <Row className="align-items-center">
+                    <Col xs={2} md={1}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Form.Control value={t.label} onChange={(e) => renameTier(t.id, e.target.value)}
+                            style={{ backgroundColor: t.color, color: '#000', fontWeight: 'bold', textAlign: 'center', width: 80, height: 100, border: '1px solid #484c50ff', borderRight: 'none', borderRadius: '0.25rem 0 0 0.25rem'}}
+                        />
+                        <Dropdown>
+                            <Dropdown.Toggle 
+                            variant="outline-secondary" 
+                            size="sm" 
+                            style={{ backgroundColor: t.color, height: 100, width: 20, borderLeft: 'none', borderRadius: '0 0.25rem 0.25rem 0', border: '1px solid #484c50ff'}}
+                            >
+                
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu>
+                            <Dropdown.Item onClick={() => removeTier(t.id)}>Delete</Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
+                        </div>
+                    </Col>
+                    {/* Show the items */}
+                    <Col xs={10} md={11}>
+                        <DroppableContainer id={t.id} style={{
+                        minHeight: 100, backgroundColor: `${t.color}15`, borderRadius: 4, padding: 10, display: 'flex', flexWrap: 'wrap', gap: 10
+                        }}>
+                        <SortableContext items={(containers[t.id] || []).map(i => i.id)} strategy={rectSortingStrategy}>
+                            {(containers[t.id] || []).map(it => (
+                            <SortableItem key={it.id} id={it.id} item={it} isDragging={activeId === it.id} />
+                            ))}
+                        </SortableContext>
+                        </DroppableContainer>
+                    </Col>
+                    </Row>
+                </Card.Body>
+                </Card>
+            ))}
             </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+
+            {/* Add row */}
+            <div className="text-center mb-4">
+            <Button variant="outline-secondary" onClick={() => setShowAddTierModal(true)}>+ Add Tier</Button>
+            </div>
+
+            {/* Unselected area */}
+            <Card className="mb-4">
+            <Card.Header><h5 className="mb-0">Unselected Items</h5></Card.Header>
+            <Card.Body>
+                <DroppableContainer id="unranked" style={{
+                minHeight: 150, backgroundColor: '#f8f9fa', borderRadius: 4, padding: 15, display: 'flex', flexWrap: 'wrap', gap: 15
+                }}>
+                    {/* Show the items */}
+                <SortableContext items={(containers.unranked || []).map(i => i.id)} strategy={rectSortingStrategy}>
+                    {(containers.unranked || []).map(it => (
+                    <SortableItem key={it.id} id={it.id} item={it} isDragging={activeId === it.id} />
+                    ))}
+                </SortableContext>
+                </DroppableContainer>
+            </Card.Body>
+            </Card>
+
+            {/* Drag overlay with item image */}
+            <DragOverlay>
+            {activeItem ? (
+                <div style={{ width: 120, height: 120, borderRadius: 6, overflow: 'hidden', boxShadow: '0 6px 20px rgba(0,0,0,0.2)' }}>
+                <img src={activeItem.imageUrl} alt={activeItem.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+            ) : null}
+            </DragOverlay>
+        </DndContext>
+      </div>
 
       {/* Pop up window for adding a new row */}
       <Modal show={showAddTierModal} onHide={() => setShowAddTierModal(false)}>
