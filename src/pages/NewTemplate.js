@@ -68,7 +68,7 @@ function NewTemplate() {
 
             if (response.data.success) {
                 // If the user successfully created a new template, redirect to Create Tier List page
-                navigate(`/create-tierlist/${response.data.templateId}`);
+                navigate(`/create-tierlist/${response.data.template.id}`);
             } else {
                 setError('Error: ' + response.data.message);
             }

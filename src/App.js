@@ -12,7 +12,7 @@ import Register from './pages/Register';
 import Templates from './pages/Templates.js';
 import NewTemplate from './pages/NewTemplate.js';
 import PublicTemplates from './pages/PublicTemplates.js';
-
+import CreateTierlist from './pages/CreateTierlist.js';
 
 function App() {
   return (
@@ -41,6 +41,12 @@ function App() {
             <Route path="/public-templates" element={
                 <ProtectedRoute>
                   <PublicTemplates />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/create-tierlist/:templateId" element={
+                <ProtectedRoute>
+                  <CreateTierlist />
                 </ProtectedRoute>
               }
             />
