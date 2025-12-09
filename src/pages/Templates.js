@@ -17,7 +17,7 @@ function Templates() {
     const getUserTemplates = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('/api/templates/my');
+            const response = await axios.get('https://api.taro5453.com/api/templates/my');
             setTemplates(response.data.templates || []);
         } catch (err) {
             setError('Failed to load templates');

@@ -19,9 +19,10 @@ function Login() {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/users/login', null, {
-        params: { username, password }
-      });
+      const response = await axios.post('https://api.taro5453.com/api/users/login', 
+        { username, password }, // send as JSON body
+        { withCredentials: true } // include cookies
+      );
 
       if (response.data.success) {
         // Save user info
