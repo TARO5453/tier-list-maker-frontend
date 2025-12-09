@@ -145,7 +145,9 @@ function CreateTierlist() {
     async function loadTemplate() {
       try {
         setLoading(true);
-        const res = await axios.get(`https://api.taro5453.com/api/templates/${templateId}`);
+        const res = await axios.get(`https://api.taro5453.com/api/templates/${templateId}`, {
+                withCredentials: true
+        });
         if (!res.data.success) {
           setError(res.data.message || 'Failed to load template');
           return;

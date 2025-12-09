@@ -61,7 +61,6 @@ function NewTemplate() {
 
             // Send request to backend
             const response = await axios.post('https://api.taro5453.com/api/templates', formDataToSend, {
-                headers: {'Content-Type': 'multipart/form-data'},
                 withCredentials: true 
             });
 

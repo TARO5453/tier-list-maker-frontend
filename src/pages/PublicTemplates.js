@@ -30,7 +30,8 @@ function PublicTemplates() {
             const personal = false;
             const category = 'NONE';
             const response = await axios.get('https://api.taro5453.com/api/templates/all', {
-                params: { category, personal }
+                params: { category, personal },
+                withCredentials: true
             });
             // All templates
             setTemplates(response.data.templates || []);
