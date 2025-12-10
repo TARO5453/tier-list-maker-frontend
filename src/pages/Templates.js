@@ -27,10 +27,26 @@ function Templates() {
             setLoading(false);
         }
     }
+    const deleteTemplate = async (templateId) => {
+        try {
+            setLoading(true);
+            const response = await axios.delete(`https://api.taro5453.com/api/templates/${templateId}`, {
+                withCredentials: true
+        });
+            await getUserTemplates(); // Refresh list
+        } catch (err) {
+            setError('Failed to delete templates');
+        } finally {
+            setLoading(false);
+        }
+    }
 
     // Handle redirect buttons
     const handleTemplateClick = (templateId) => {
         navigate(`/create-tierlist/${templateId}`);
+    };
+    const handleTemplateDelete = async (templateId) => {
+        await deleteTemplate(templateId);
     };
     const handleNewTemplate = () => {
         navigate('/new-template');
@@ -94,13 +110,23 @@ function Templates() {
                                     <Card.Text className="text-muted small">
                                         {template.description || 'No description'}
                                     </Card.Text>
-                                    <div className="d-flex justify-content-between">
-                                        <Badge bg={template.personal ? 'secondary' : 'success'}>
-                                            {template.personal ? 'Private' : 'Public'}
-                                        </Badge>
-                                        <small className="text-muted">
-                                            {template.category}
-                                        </small>
+                                    <div className="d-flex justify-content-between align-items-center mt-2">
+
+                                        <div className="d-flex flex-column">
+                                            <Badge bg={template.personal ? 'secondary' : 'success'} className="mb-1">
+                                                {template.personal ? 'Private' : 'Public'}
+                                            </Badge>
+                                            <Badge bg='light' text="dark" className="mb-1">
+                                                {template.category}
+                                            </Badge>
+                                        </div>
+
+                                        <Button variant="outline-danger" size="sm" onClick={(e) => {
+                                            e.stopPropagation(); // prevent card click
+                                            handleTemplateDelete(template.id)
+                                        }}>
+                                             Delete
+                                        </Button>
                                     </div>
                                 </Card.Body>
                             </Card>
