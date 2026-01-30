@@ -1,70 +1,141 @@
-# Getting Started with Create React App
+# Tier List Maker – Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A responsive React frontend for the Tier List Maker application.
+This frontend handles authentication, template management, and interactive tier list creation, and communicates with a Spring Boot backend API.
+The application is containerized using Docker and served via Nginx for production-ready deployment.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Author
 
-### `npm start`
+**Nathanon C.**
+Computer Science Student
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+This project was built for learning purposes and to demonstrate frontend architecture, authentication flow, routing, and containerized deployment using React and Docker.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Features
 
-### `npm run build`
+* User registration and login
+* Protected routes for authenticated users
+* Create tier list templates
+* Browse public templates
+* Create tier lists based on templates
+* Client-side routing with React Router
+* Production build served with Nginx
+* Fully containerized using Docker
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Tech Stack
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+**Frontend**
 
-### `npm run eject`
+* React (Create React App)
+* React Router
+* JavaScript
+* Bootstrap CSS
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+**DevOps / Tooling**
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+* Docker 
+* Nginx
+* Node.js 
+* npm
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Project Structure
 
-## Learn More
+```
+.
+├── Dockerfile
+├── nginx.conf
+├── package.json
+├── package-lock.json
+├── public
+├── src
+│   ├── components
+│   │   ├── auth
+│   │   │   └── ProtectedRoute.js
+│   │   ├── layouts
+│   │   │   └── Navigation.js
+│   │   └── Tierlist
+│   ├── contexts
+│   │   └── AuthContext.js
+│   ├── pages
+│   │   ├── Home.js
+│   │   ├── Login.js
+│   │   ├── Register.js
+│   │   ├── Templates.js
+│   │   ├── PublicTemplates.js
+│   │   ├── NewTemplate.js
+│   │   └── CreateTierlist.js
+│   ├── App.js
+│   ├── index.js
+│   ├── App.css
+│   └── index.css
+└── README.md
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Routing Overview
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+| Route | Description | Access |
+| :---         |     :---:      |          ---: |
+| /   | Home page     | Public    |
+| /login     | Login page       | Public      |
+| /register   | Registration page     | Public    |
+| /templates     | User templates       | Protected      |
+| /new-template   | Create template     | Protected    |
+| /public-templates     | Browse public templates       | Protected      |
+| /create-tierlist/:templateId   | Create tier list     | Protected    |
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Getting Started
 
-### Analyzing the Bundle Size
+### Prerequisites
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+* Docker
+* Docker Compose
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Run with Docker
 
-### Advanced Configuration
+From the project root directory:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```bash
+docker build -t tier-list-maker-frontend .
+docker run -p 3000:80 tier-list-maker-frontend
+```
 
-### Deployment
+### Run locally
+```bash
+npm install
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+The app will show up at http://localhost:3000 
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Notes
+
+Notes
+
+* This frontend is designed to work with a Spring Boot backend
+* Nginx is used instead of the React dev server for production performance
+* The frontend and backend are maintained in separate repositories for clarity and modularity
+
+---
+
+## Acknowledgements
+
+AI tools were used as a learning and productivity aid during development 
+(e.g., for clarifying concepts, debugging, and improving code structure).
+
+---
